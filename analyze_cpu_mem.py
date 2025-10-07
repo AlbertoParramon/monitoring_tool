@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Script simplificado para generar gráfica de CPU por timestamps
+Script to generate a graph of CPU consumption by timestamps
 """
 
 import pandas as pd
@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
+import argparse
 from matplotlib.patches import Patch
 
 def normalize_pid(pid):
@@ -315,27 +316,6 @@ def create_cpu_chart(processes_data, timestamps, pid_details=None, output_filena
     return list(all_top_processes)
 
 
-def show_usage():
-    """
-    Muestra información de uso del script
-    """
-    print("USO DEL SCRIPT:")
-    print("=" * 50)
-    print("python3 analiza_cpu_mem.py <csv_file> <processes_file> [start_timestamp] [end_timestamp]")
-    print()
-    print("Argumentos:")
-    print("  csv_file           - file csv with monitoring data from NMON")
-    print("  processes_file     - file with detailed information about processes (PID,user - process)")
-    print("  start_timestamp    - start timestamp (example: T0002) (optional)")
-    print("  end_timestamp      - end timestamp (example: T0013) (optional)")
-    print()
-    print("Examples:")
-    print("  # With this mode you will see a summary of the analysis but without graphs")
-    print("  python3 analiza_cpu_mem.py datos.csv procesos.txt ")
-    print("  # With this mode you will see a summary of the analysis with graphs")
-    print("  python3 analiza_cpu_mem.py datos.csv procesos.txt T0002 T0013")
-    print()
-
 def filter_timestamps(timestamps, start_ts=None, end_ts=None):
     """
     Filter the timestamps according to the specified range
@@ -373,29 +353,32 @@ def filter_timestamps(timestamps, start_ts=None, end_ts=None):
     return filtered_timestamps
 
 def main():
-    # Verify arguments
-    if len(sys.argv) < 3:
-        print("Error: You must specify a CSV file and a processes file")
-        show_usage()
-        sys.exit(1)
 
-    if len(sys.argv) > 5:
-        print("Error: Too many arguments")
-        show_usage()
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description='Analyze CPU and memory consumption by timestamp',
+    epilog="""
+Examples:
+    python3 analyze_cpu_mem.py nmon_file.nmon processes_file.txt # With this mode you will see a summary of the analysis but without graphs
+    python3 analyze_cpu_mem.py nmon_file.nmon processes_file.txt T0002 T0013 # With this mode you will see a summary of the analysis with graphs
+    """,
+    formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('nmon_file', type=str, help='file csv with monitoring data from NMON')
+    parser.add_argument('processes_file', type=str, help='file with detailed information about processes (PID,user - process)')
+    parser.add_argument('start_timestamp', type=str, help='start timestamp (example: T0002)', nargs='?', default=None)
+    parser.add_argument('end_timestamp', type=str, help='end timestamp (example: T0013)', nargs='?', default=None)
+    args = parser.parse_args()
     
     # Get mandatory arguments
-    filename = sys.argv[1]
-    processes_file = sys.argv[2]
+    nmon_file = args.nmon_file
+    processes_file = args.processes_file
     
     # Optional arguments
-    start_timestamp = sys.argv[3] if len(sys.argv) >= 4 else None
-    end_timestamp = sys.argv[4] if len(sys.argv) >= 5 else None
+    start_timestamp = args.start_timestamp if args.start_timestamp else None
+    end_timestamp = args.end_timestamp if args.end_timestamp else None
     
     # Parse data
     print("\n------------------------------------------------------------")
-    print(f"Analizing file: {filename}")
-    processes_data, timestamps = parse_monitoring_data(filename)
+    print(f"Analyzing file: {nmon_file}")
+    processes_data, timestamps = parse_monitoring_data(nmon_file)
     print(f"\n- Found {len(timestamps)} timestamps")
     print(f"\t- From {timestamps[0]['timestamp']} at {timestamps[0]['time_label']} ")
     print(f"\t- To {timestamps[len(timestamps)-1]['timestamp']} at {timestamps[len(timestamps)-1]['time_label']}")
@@ -407,14 +390,13 @@ def main():
     print(f"\n- Filtering timestamps: {original_count} → {len(timestamps)}")
     print(f"\t- From {timestamps[0]['timestamp']} at {timestamps[0]['time_label']} ")
     print(f"\t- To {timestamps[len(timestamps)-1]['timestamp']} at {timestamps[len(timestamps)-1]['time_label']}")
-    #print(f"DEBUG:Timestamps filtered: {timestamps}")
     
     if not timestamps:
         print("No timestamps in the specified range")
         sys.exit(1)
 
     filtered_timestamps = timestamps
-    print(f"DEBUG: Filtered timestamps: {filtered_timestamps}")
+    #print(f"DEBUG: Filtered timestamps: {filtered_timestamps}")
     # Filter processes data according to the selected timestamps
     filtered_processes_data = []
     timestamp_list = [item['timestamp'] for item in filtered_timestamps]
@@ -428,14 +410,14 @@ def main():
     # Load detailed information about processes
     print("\n------------------------------------------------------------")
     pid_details = load_process_details(processes_file)
-    print(f"Analizing file: {processes_file}")
+    print(f"Analyzing file: {processes_file}")
     print(f"\n- Loaded {len(pid_details)} PID processes")
     print("------------------------------------------------------------")
     
     print("\n------------------------------------------------------------")
     print(f"Information about the system:")
     # Get CPU information from the system
-    cpu_count = get_cpu_info(filename)
+    cpu_count = get_cpu_info(nmon_file)
     cpu_max = cpu_count * 100 if cpu_count > 0 else None
     
     if cpu_max:
