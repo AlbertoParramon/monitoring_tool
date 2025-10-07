@@ -287,7 +287,7 @@ def create_cpu_chart(processes_data, timestamps, pid_details=None, output_filena
         
         # Show total value on the top of each bar
         ax.text(i, total_attr + 2, f'{total_attr:.1f}%', 
-                ha='center', va='bottom', fontweight='bold', fontsize=10)
+                ha='center', va='bottom', fontweight='bold', fontsize=7)
     
     # Configure layout
     plt.subplots_adjust(left=0.02, right=0.98, top=0.92, bottom=0.25)
