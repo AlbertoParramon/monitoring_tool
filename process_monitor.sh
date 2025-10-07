@@ -73,12 +73,64 @@ process_system_processes() {
    rm -f "$total_temp_file"
 }
 
-# Get arguments
-BASE_NAME="${1:-processes}"
-TIME_MONITORING_SECONDS="${2:-2880}"
-TIME_INTERVAL_SECONDS="${3:-30}"
-PROCESS_CPU_RUNNING=true
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") [options]
 
+Monitors processes and generates metrics in NMON format.
+
+Options:
+  -b, --base-name NAME    Base name of the output file (default: "$BASE_NAME")
+  -t, --time SECONDS       Total time of monitoring (default: $TIME_MONITORING_SECONDS)
+  -i, --interval SECONDS   Interval between measurements (default: $TIME_INTERVAL_SECONDS)
+  -h, --help                Shows this help and exits
+
+Examples:
+  $(basename "$0") -b output_file
+  $(basename "$0") --base-name processes --time 600 --interval 10
+
+EOF
+  exit 0
+}
+
+# -----------------------------------------
+# Process arguments
+# -----------------------------------------
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -b|--base-name)
+      BASE_NAME="$2"
+      shift 2
+      ;;
+    -t|--time)
+      TIME_MONITORING_SECONDS="$2"
+      shift 2
+      ;;
+    -i|--interval)
+      TIME_INTERVAL_SECONDS="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      ;;
+    *)
+      echo "Error: unknown argument '$1'" >&2
+      usage
+      ;;
+  esac
+done
+
+# Get arguments
+BASE_NAME="${BASE_NAME:-processes}"
+TIME_MONITORING_SECONDS="${TIME_MONITORING_SECONDS:-2880}"
+TIME_INTERVAL_SECONDS="${TIME_INTERVAL_SECONDS:-30}"
+
+
+echo "DEBUG: BASE_NAME: ${BASE_NAME}"
+echo "DEBUG: TIME_MONITORING_SECONDS: ${TIME_MONITORING_SECONDS}"
+echo "DEBUG: TIME_INTERVAL_SECONDS: ${TIME_INTERVAL_SECONDS}"
+
+PROCESS_CPU_RUNNING=true
 process_system_processes &
 PID_SYSTEM_PROCESSES=$!
 
