@@ -26,8 +26,7 @@ This allows you to check which timestamps show higher CPU or memory consumption.
 <img width="585" height="534" alt="captura1" src="https://github.com/user-attachments/assets/b6266796-7fef-4b85-9a18-0eec5beecbf7" />
 
 After that, you can choose an interval that includes a specific timestamp for further analysis.
-
-<img width="1250" height="694" alt="captura2" src="https://github.com/user-attachments/assets/c6bffb38-aee8-4a5c-aa03-827d759a9904" />
+<img width="1250" height="694" alt="captura4" src="https://github.com/user-attachments/assets/3c15f51a-9666-444f-9988-850b68613d20" />
 
 You can also view a summary of all timestamps directly in your terminal.
 
